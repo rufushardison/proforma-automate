@@ -1,0 +1,297 @@
+{
+  "template_name": "Multi Tenant Model",
+  "template_file": "Multi Tenant Model.xlsm",
+
+  "_notes": {
+    "blue_hex": "0070C0 — column headers only, not input cells. Inputs identified by protection scan.",
+    "circular_ref": "Macro updates D18 (Interest Carry) and D19 (Lender Fees) on Deal Summary, plus Financing H5/H8. Same formula as template_a: c32 = base_costs / (1 - (1+dev_fee_rate)*ltc*(fee_rate + rate*months/12)).",
+    "rent_roll_approach": "Rent Roll sheet has up to 17 tenant rows (11-27). Each row = one tenant. Monthly PSF values fill columns P-DA (84 cells per row, 7 years × 12 months). Columns DD-DJ = annual rent $ totals per year (2026-2032). We write the same base_rent_psf to all monthly cells for that tenant and compute DD-DJ as sf * psf.",
+    "differences_from_template_a": [
+      "Rent roll is on dedicated 'Rent Roll' sheet, not Deal Summary",
+      "building_sf input at S9 (new field)",
+      "Additional expense inputs: taxes T23, insurance T24, CAM T25, expense_increase T26, property_mgmt_fee_rate T27",
+      "vacancy_rate at T31 (new field)",
+      "sale_closing_costs_rate at T29 (was T27 in template_a)",
+      "sale_cap_rate_goal at T30 (was T28 in template_a)",
+      "Circular ref cells at D18/D19 (vs D21/D22 in template_a)",
+      "Leasing commission is single flat-fee line: label S19 [editable], value T19"
+    ],
+    "sheet_names": ["Deal Summary", "Costs", "Proforma", "Rent Roll", "IRR ", "Financing", "Tax Credits", "Dealpath Outputs", "Financing (3 Refi)"]
+  },
+
+  "circular_ref_cells": {
+    "interest_carry_deal_summary": { "sheet": "Deal Summary", "cell": "D18" },
+    "lender_fees_deal_summary":    { "sheet": "Deal Summary", "cell": "D19" },
+    "interest_carry_financing":    { "sheet": "Financing",    "cell": "H5"  },
+    "lender_fees_financing":       { "sheet": "Financing",    "cell": "H8"  }
+  },
+
+  "rent_roll": {
+    "_note": "Describes the Rent Roll sheet row structure. excel_writer iterates over the tenants list extracted by Claude and writes one row per tenant starting at first_tenant_row.",
+    "sheet": "Rent Roll",
+    "first_tenant_row": 11,
+    "last_tenant_row": 27,
+    "columns": {
+      "tax_reimbursement":  "B",
+      "ins_reimbursement":  "C",
+      "cam_reimbursement":  "D",
+      "annual_pct_increase": "E",
+      "tenant_name":        "F",
+      "unit":               "G",
+      "sq_ft":              "H",
+      "base_rent_psf":      "J",
+      "ti_psf":             "K"
+    },
+    "monthly_psf_columns": {
+      "2026": { "start": "P", "end": "AA" },
+      "2027": { "start": "AC", "end": "AN" },
+      "2028": { "start": "AP", "end": "BA" },
+      "2029": { "start": "BC", "end": "BN" },
+      "2030": { "start": "BP", "end": "CA" },
+      "2031": { "start": "CC", "end": "DA" }
+    },
+    "annual_rent_columns": {
+      "2026": "DD",
+      "2027": "DE",
+      "2028": "DF",
+      "2029": "DG",
+      "2030": "DH",
+      "2031": "DI",
+      "2032": "DJ"
+    }
+  },
+
+  "assumptions": {
+
+    "property_name": {
+      "sheet": "Deal Summary", "cell": "S6",
+      "type": "string", "required": false,
+      "label": "Property Name",
+      "sample_value": "Knox Abbot 3 Tenant Bldg"
+    },
+
+    "property_city": {
+      "sheet": "Deal Summary", "cell": "S7",
+      "type": "string", "required": false,
+      "label": "City / Location",
+      "sample_value": "Columbia, SC"
+    },
+
+    "property_type": {
+      "sheet": "Deal Summary", "cell": "S8",
+      "type": "string", "required": false,
+      "label": "Property Type",
+      "sample_value": "Build To Suit"
+    },
+
+    "building_sf": {
+      "sheet": "Deal Summary", "cell": "S9",
+      "type": "integer", "required": true,
+      "label": "Building Square Footage",
+      "sample_value": 5500
+    },
+
+    "acquisition_date": {
+      "sheet": "Deal Summary", "cell": "T10",
+      "type": "date", "required": true,
+      "label": "Acquisition Date",
+      "sample_value": "2026-01-01"
+    },
+
+    "acquisition_cost": {
+      "sheet": "Deal Summary", "cell": "T11",
+      "type": "currency", "required": true,
+      "label": "Acquisition Cost",
+      "sample_value": 1200000
+    },
+
+    "land_sale_broker_fee": {
+      "sheet": "Deal Summary", "cell": "T13",
+      "type": "currency", "required": false,
+      "label": "Land Sale Broker Fee",
+      "sample_value": 0
+    },
+
+    "ae_costs": {
+      "sheet": "Deal Summary", "cell": "T14",
+      "type": "currency", "required": false,
+      "label": "A&E",
+      "sample_value": 20000
+    },
+
+    "contingency": {
+      "sheet": "Deal Summary", "cell": "T15",
+      "type": "currency", "required": false,
+      "label": "Contingency",
+      "sample_value": 100000
+    },
+
+    "closing_costs": {
+      "sheet": "Deal Summary", "cell": "T16",
+      "type": "currency", "required": false,
+      "label": "Closing Costs",
+      "sample_value": 15000
+    },
+
+    "permitting": {
+      "sheet": "Deal Summary", "cell": "T17",
+      "type": "currency", "required": false,
+      "label": "Permitting",
+      "sample_value": 2500
+    },
+
+    "legal_fees": {
+      "sheet": "Deal Summary", "cell": "T18",
+      "type": "currency", "required": false,
+      "label": "Legal Fees",
+      "sample_value": 15000
+    },
+
+    "leasing_commission": {
+      "sheet": "Deal Summary", "cell": "T19",
+      "type": "currency", "required": false,
+      "label": "Leasing Commission",
+      "sample_value": 160000
+    },
+
+    "additional_cost_amount": {
+      "sheet": "Deal Summary", "cell": "T20",
+      "type": "currency", "required": false,
+      "label": "Insert Cost Category (custom)",
+      "sample_value": 0
+    },
+
+    "developer_fee_rate": {
+      "sheet": "Deal Summary", "cell": "T21",
+      "type": "percent", "required": false,
+      "label": "Project Mgmt Fee (Developer Fee)",
+      "sample_value": 0.04
+    },
+
+    "taxes": {
+      "sheet": "Deal Summary", "cell": "T23",
+      "type": "currency", "required": false,
+      "label": "Taxes (annual)",
+      "sample_value": 0
+    },
+
+    "insurance": {
+      "sheet": "Deal Summary", "cell": "T24",
+      "type": "currency", "required": false,
+      "label": "Insurance (annual)",
+      "sample_value": 0
+    },
+
+    "cam": {
+      "sheet": "Deal Summary", "cell": "T25",
+      "type": "currency", "required": false,
+      "label": "CAM (annual)",
+      "sample_value": 0
+    },
+
+    "annual_expense_increase": {
+      "sheet": "Deal Summary", "cell": "T26",
+      "type": "percent", "required": false,
+      "label": "Annual Expense Increase",
+      "sample_value": 0
+    },
+
+    "property_mgmt_fee_rate": {
+      "sheet": "Deal Summary", "cell": "T27",
+      "type": "percent", "required": false,
+      "label": "Property Management Fee",
+      "sample_value": 0.04
+    },
+
+    "sale_closing_costs_rate": {
+      "sheet": "Deal Summary", "cell": "T29",
+      "type": "percent", "required": false,
+      "label": "Sale Closing Costs (%)",
+      "sample_value": 0.04
+    },
+
+    "sale_cap_rate_goal": {
+      "sheet": "Deal Summary", "cell": "T30",
+      "type": "percent", "required": true,
+      "label": "Sale Cap Rate Goal",
+      "sample_value": 0.065
+    },
+
+    "vacancy_rate": {
+      "sheet": "Deal Summary", "cell": "T31",
+      "type": "percent", "required": false,
+      "label": "Vacancy Rate",
+      "sample_value": 0
+    },
+
+    "financing_rate": {
+      "sheet": "Deal Summary", "cell": "T33",
+      "type": "percent", "required": true,
+      "label": "Financing Rate",
+      "sample_value": 0.0625
+    },
+
+    "loan_amortization_years": {
+      "sheet": "Deal Summary", "cell": "T34",
+      "type": "integer", "required": true,
+      "label": "Loan Amortization (Years)",
+      "sample_value": 25
+    },
+
+    "interest_only_period_months": {
+      "sheet": "Deal Summary", "cell": "T35",
+      "type": "integer", "required": false,
+      "label": "Interest Only Period (Months)",
+      "sample_value": 12
+    },
+
+    "ltc": {
+      "sheet": "Deal Summary", "cell": "T36",
+      "type": "percent", "required": true,
+      "label": "LTC (Loan-to-Cost)",
+      "sample_value": 0.8
+    },
+
+    "lender_fee_rate": {
+      "sheet": "Deal Summary", "cell": "T37",
+      "type": "percent", "required": true,
+      "label": "Lender Fee Percentage",
+      "sample_value": 0.01
+    },
+
+    "months_of_construction": {
+      "sheet": "Deal Summary", "cell": "T38",
+      "type": "integer", "required": false,
+      "label": "Months of Construction",
+      "sample_value": 8
+    },
+
+    "costs_sitework":           { "sheet": "Costs", "cell": "F6",  "type": "currency", "required": false, "label": "Site Work — Sitework",            "sample_value": null },
+    "costs_addtl_import":       { "sheet": "Costs", "cell": "F7",  "type": "currency", "required": false, "label": "Site Work — Addt'l Import",       "sample_value": null },
+    "costs_ug_detention":       { "sheet": "Costs", "cell": "F8",  "type": "currency", "required": false, "label": "Site Work — U/G Detention",       "sample_value": null },
+    "costs_landscaping":        { "sheet": "Costs", "cell": "F10", "type": "currency", "required": false, "label": "Site Work — Landscaping",          "sample_value": null },
+    "costs_site_lighting":      { "sheet": "Costs", "cell": "F11", "type": "currency", "required": false, "label": "Site Work — Site Lighting",        "sample_value": null },
+    "costs_site_signage":       { "sheet": "Costs", "cell": "F12", "type": "currency", "required": false, "label": "Site Work — Signage",              "sample_value": null },
+    "costs_existing_bldg_demo": { "sheet": "Costs", "cell": "F14", "type": "currency", "required": false, "label": "Site Work — Building Demolition",   "sample_value": null },
+    "costs_interior_demo":      { "sheet": "Costs", "cell": "F15", "type": "currency", "required": false, "label": "Site Work — Interior Demo",        "sample_value": null },
+    "costs_asbestos_sw":        { "sheet": "Costs", "cell": "F16", "type": "currency", "required": false, "label": "Site Work — Asbestos Abatement",   "sample_value": null },
+    "costs_new_building":       { "sheet": "Costs", "cell": "F20", "type": "currency", "required": false, "label": "Construction — New Building",      "sample_value": null },
+    "costs_interior_reno":      { "sheet": "Costs", "cell": "F21", "type": "currency", "required": false, "label": "Construction — Interior Renovations", "sample_value": null },
+    "costs_bldg_demolition":    { "sheet": "Costs", "cell": "F22", "type": "currency", "required": false, "label": "Construction — Building Demolition", "sample_value": null },
+    "costs_asbestos_const":     { "sheet": "Costs", "cell": "F23", "type": "currency", "required": false, "label": "Construction — Asbestos Abatement", "sample_value": null },
+    "costs_roof_replacement":   { "sheet": "Costs", "cell": "F24", "type": "currency", "required": false, "label": "Construction — Roof Replacement",  "sample_value": null },
+    "costs_structural_repairs": { "sheet": "Costs", "cell": "F25", "type": "currency", "required": false, "label": "Construction — Structural Repairs", "sample_value": null },
+    "costs_fencing":            { "sheet": "Costs", "cell": "F26", "type": "currency", "required": false, "label": "Construction — Fencing",           "sample_value": null },
+    "costs_const_signage":      { "sheet": "Costs", "cell": "F27", "type": "currency", "required": false, "label": "Construction — Signage",           "sample_value": null },
+    "costs_ffe":                { "sheet": "Costs", "cell": "F28", "type": "currency", "required": false, "label": "Construction — FF&E",              "sample_value": null },
+    "costs_low_voltage":        { "sheet": "Costs", "cell": "F29", "type": "currency", "required": false, "label": "Construction — Low Voltage",       "sample_value": null },
+    "costs_materials_testing":  { "sheet": "Costs", "cell": "F30", "type": "currency", "required": false, "label": "Construction — Materials Testing & SWPPP", "sample_value": null },
+    "dd_environmental":         { "sheet": "Costs", "cell": "N5",  "type": "currency", "required": false, "label": "DD Costs — Environmental",         "sample_value": null },
+    "dd_phase_i":               { "sheet": "Costs", "cell": "N6",  "type": "currency", "required": false, "label": "DD Costs — Phase I",               "sample_value": null },
+    "dd_phase_ii":              { "sheet": "Costs", "cell": "N7",  "type": "currency", "required": false, "label": "DD Costs — Phase II",              "sample_value": null },
+    "dd_geotech":               { "sheet": "Costs", "cell": "N8",  "type": "currency", "required": false, "label": "DD Costs — GeoTech",               "sample_value": null },
+    "dd_inspections":           { "sheet": "Costs", "cell": "N9",  "type": "currency", "required": false, "label": "DD Costs — Inspections",           "sample_value": null },
+    "dd_structural":            { "sheet": "Costs", "cell": "N10", "type": "currency", "required": false, "label": "DD Costs — Structural",            "sample_value": null },
+    "dd_surveys":               { "sheet": "Costs", "cell": "N13", "type": "currency", "required": false, "label": "DD Costs — Surveys",               "sample_value": null }
+  }
+}

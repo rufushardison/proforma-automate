@@ -1,0 +1,8 @@
+.env
+history/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+output_test.xlsm
+.streamlit/
