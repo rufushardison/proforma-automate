@@ -292,6 +292,13 @@
     "dd_geotech":               { "sheet": "Costs", "cell": "N8",  "type": "currency", "required": false, "label": "DD Costs — GeoTech",               "sample_value": null },
     "dd_inspections":           { "sheet": "Costs", "cell": "N9",  "type": "currency", "required": false, "label": "DD Costs — Inspections",           "sample_value": null },
     "dd_structural":            { "sheet": "Costs", "cell": "N10", "type": "currency", "required": false, "label": "DD Costs — Structural",            "sample_value": null },
-    "dd_surveys":               { "sheet": "Costs", "cell": "N13", "type": "currency", "required": false, "label": "DD Costs — Surveys",               "sample_value": null }
+    "dd_surveys":               { "sheet": "Costs", "cell": "N13", "type": "currency", "required": false, "label": "DD Costs — Surveys",               "sample_value": null },
+
+    "additional_cost_1_label":  { "sheet": "Costs", "cell": "B32", "type": "string",   "required": false, "label": "Insert Cost Category 1 — Label",    "sample_value": null },
+    "additional_cost_1":        { "sheet": "Costs", "cell": "F32", "type": "currency", "required": false, "label": "Insert Cost Category 1 — Amount",   "sample_value": null },
+    "additional_cost_2_label":  { "sheet": "Costs", "cell": "B33", "type": "string",   "required": false, "label": "Insert Cost Category 2 — Label",    "sample_value": null },
+    "additional_cost_2":        { "sheet": "Costs", "cell": "F33", "type": "currency", "required": false, "label": "Insert Cost Category 2 — Amount",   "sample_value": null },
+    "additional_cost_3_label":  { "sheet": "Costs", "cell": "B34", "type": "string",   "required": false, "label": "Insert Cost Category 3 — Label",    "sample_value": null },
+    "additional_cost_3":        { "sheet": "Costs", "cell": "F34", "type": "currency", "required": false, "label": "Insert Cost Category 3 — Amount",   "sample_value": null }
   }
 }
