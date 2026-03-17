@@ -38,8 +38,20 @@ TenantList = list[dict[str, Any]]
 # Single-tenant / flat assumption extraction
 # ---------------------------------------------------------------------------
 
-def build_system_prompt(assumption_keys: list[str]) -> str:
-    keys_json = json.dumps(assumption_keys, indent=2)
+def build_system_prompt(assumption_keys: list[str], assumptions_meta: dict | None = None) -> str:
+    if assumptions_meta:
+        labelled: dict = {}
+        for k in assumption_keys:
+            if k.startswith("_"):
+                labelled[k] = k
+            else:
+                meta = assumptions_meta.get(k, {})
+                label = meta.get("label", k)
+                cell_type = meta.get("type", "string")
+                labelled[k] = f"{label} ({cell_type})"
+        keys_json = json.dumps(labelled, indent=2)
+    else:
+        keys_json = json.dumps(assumption_keys, indent=2)
     return f"""You are a precise data-extraction assistant for a real estate investment firm.
 
 Your task is to extract deal assumptions from an unstructured deal summary provided by the user.
@@ -102,7 +114,7 @@ def extract_assumptions(
     if has_rent_years:
         assumption_keys = ["_lease_term_years"] + assumption_keys
 
-    system_prompt = build_system_prompt(assumption_keys)
+    system_prompt = build_system_prompt(assumption_keys, manifest.get("assumptions", {}))
 
     message = client.messages.create(
         model="claude-opus-4-6",

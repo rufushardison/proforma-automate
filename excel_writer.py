@@ -258,6 +258,7 @@ def _write_circular_ref_values(
         "ae_costs", "contingency", "closing_costs", "permitting", "legal_fees",
         "leasing_commission", "leasing_commission_flat_fee", "additional_cost_amount",
         "land_sale_broker_fee", "tenant_improvement_total",
+        "additional_cost_1", "additional_cost_2", "additional_cost_3",
     ]
     soft_costs_total = sum(
         float(extraction[k]["value"])
