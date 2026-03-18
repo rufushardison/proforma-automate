@@ -73,10 +73,10 @@ def fill_template(
     template_path: str | Path,
     manifest: dict[str, Any],
     extraction: ExtractionResult,
-) -> tuple[io.BytesIO, dict[str, Any]]:
+) -> io.BytesIO:
     """
-    Load the template, write assumptions, resolve circular refs, write rent roll
-    (for multi-tenant), and return an in-memory .xlsm buffer for download.
+    Load the template, write assumptions, write rent roll (for multi-tenant),
+    and return an in-memory .xlsm buffer for download.
 
     Args:
         template_path: Absolute path to the original .xlsm template.
@@ -84,7 +84,7 @@ def fill_template(
         extraction:    Output of extractor.extract_assumptions().
 
     Returns:
-        (BytesIO containing the filled workbook, dict with computed circular ref info)
+        BytesIO containing the filled workbook.
     """
     template_path = Path(template_path)
     if not template_path.exists():
@@ -93,7 +93,6 @@ def fill_template(
     wb = openpyxl.load_workbook(template_path, keep_vba=True)
 
     assumptions_meta = manifest.get("assumptions", {})
-    circular_ref_cells = manifest.get("circular_ref_cells", {})
 
     # ------------------------------------------------------------------
     # 1. Write flat assumptions; highlight every mapped cell
@@ -113,7 +112,6 @@ def fill_template(
         ws = wb[sheet_name]
 
         if raw_value is None:
-            # Nothing extracted — keep template default but mark orange
             ws[cell_address].fill = _NOT_POPULATED_FILL
         else:
             ws[cell_address] = _get_cell_value(raw_value, cell_type)
@@ -129,19 +127,12 @@ def fill_template(
             _write_rent_roll(wb, manifest["rent_roll"], tenants)
 
     # ------------------------------------------------------------------
-    # 3. Resolve and write circular reference values
-    # ------------------------------------------------------------------
-    circ_info: dict[str, Any] = {}
-    if circular_ref_cells:
-        circ_info = _write_circular_ref_values(wb, manifest, extraction)
-
-    # ------------------------------------------------------------------
-    # 4. Serialize to BytesIO
+    # 3. Serialize to BytesIO
     # ------------------------------------------------------------------
     buffer = io.BytesIO()
     wb.save(buffer)
     buffer.seek(0)
-    return buffer, circ_info
+    return buffer
 
 
 # ---------------------------------------------------------------------------
@@ -374,9 +365,8 @@ if __name__ == "__main__":
             "note": "",
         }
 
-    buf, info = fill_template(sys.argv[1], _manifest, _extraction)
+    buf = fill_template(sys.argv[1], _manifest, _extraction)
     out_path = "output_test.xlsm"
     with open(out_path, "wb") as f:
         f.write(buf.read())
     print(f"Written to {out_path}")
-    print(f"Circular ref info: {info}")
