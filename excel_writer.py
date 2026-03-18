@@ -27,7 +27,6 @@ import openpyxl
 from openpyxl.styles import PatternFill
 from openpyxl.utils import column_index_from_string, get_column_letter
 
-from circular_solver import solve_all
 from extractor import ExtractionResult
 
 # Yellow  — Claude extracted a value but flagged it as low-confidence
@@ -288,26 +287,14 @@ def _write_circular_ref_values(
 
     base_costs = acquisition_cost + soft_costs_total + costs_total
 
-    try:
-        solved = solve_all(
-            base_costs=base_costs,
-            loan_to_cost=ltc,
-            fee_rate=fee_rate,
-            annual_rate=rate,
-            months_of_construction=months_carry,
-            dev_fee_rate=dev_fee_rate,
-        )
-    except (ValueError, RuntimeError):
-        # Circular coefficient out of range — fall back to a simple (non-circular) estimate
-        # so lender fees and interest carry still get written rather than left blank
-        loan_amount = base_costs * ltc
-        lender_fee = loan_amount * fee_rate
-        interest_carry = loan_amount * rate * (months_carry / 12.0)
-        solved = {
-            "loan_amount":    loan_amount,
-            "lender_fee":     lender_fee,
-            "interest_carry": interest_carry,
-        }
+    loan_amount    = base_costs * ltc
+    lender_fee     = loan_amount * fee_rate
+    interest_carry = loan_amount * rate * (months_carry / 12.0)
+    solved = {
+        "loan_amount":    loan_amount,
+        "lender_fee":     lender_fee,
+        "interest_carry": interest_carry,
+    }
 
     # Write to all circular_ref_cells entries in the manifest
     circular_ref_cells = manifest.get("circular_ref_cells", {})
