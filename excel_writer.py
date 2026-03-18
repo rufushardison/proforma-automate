@@ -250,7 +250,12 @@ def _write_circular_ref_values(
     ltc = _get("ltc")
     fee_rate = _get("lender_fee_rate")
     rate = _get("financing_rate")
-    months_construction = _get("months_of_construction") or 0.0
+    # Prefer total_interest_carry_period (multi-tenant T37) over months_of_construction
+    months_carry = (
+        _get("total_interest_carry_period")
+        or _get("months_of_construction")
+        or 0.0
+    )
     dev_fee_rate = _get("developer_fee_rate") or 0.0
 
     # Also pull all non-circular soft cost line items to compute base_costs
@@ -289,11 +294,20 @@ def _write_circular_ref_values(
             loan_to_cost=ltc,
             fee_rate=fee_rate,
             annual_rate=rate,
-            months_of_construction=months_construction,
+            months_of_construction=months_carry,
             dev_fee_rate=dev_fee_rate,
         )
     except (ValueError, RuntimeError):
-        return
+        # Circular coefficient out of range — fall back to a simple (non-circular) estimate
+        # so lender fees and interest carry still get written rather than left blank
+        loan_amount = base_costs * ltc
+        lender_fee = loan_amount * fee_rate
+        interest_carry = loan_amount * rate * (months_carry / 12.0)
+        solved = {
+            "loan_amount":    loan_amount,
+            "lender_fee":     lender_fee,
+            "interest_carry": interest_carry,
+        }
 
     # Write to all circular_ref_cells entries in the manifest
     circular_ref_cells = manifest.get("circular_ref_cells", {})
