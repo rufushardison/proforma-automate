@@ -195,6 +195,7 @@ Return a JSON array where each element represents one tenant with these fields:
   - "tenant_name"        : string — tenant / business name
   - "unit"               : string — suite, unit label, or position (e.g. "A Endcap", "B", "C Endcap")
   - "sq_ft"              : integer — tenant square footage
+  - "lease_term_years"   : integer — lease term in years (null if not stated)
   - "base_rent_psf"      : number — base rent per square foot per year
   - "ti_psf"             : number — tenant improvement allowance per square foot (0 if not stated)
   - "annual_pct_increase": number — annual rent escalation as decimal (e.g. 0.02 for 2%). 0 if flat.
@@ -246,6 +247,7 @@ def extract_tenants(
         t.setdefault("tenant_name", "")
         t.setdefault("unit", "")
         t.setdefault("sq_ft", None)
+        t.setdefault("lease_term_years", None)
         t.setdefault("base_rent_psf", None)
         t.setdefault("ti_psf", 0)
         t.setdefault("annual_pct_increase", 0)

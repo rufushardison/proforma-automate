@@ -183,6 +183,7 @@ def _write_rent_roll(
 
         # Per-tenant scalar fields
         field_values = {
+            "lease_term_years":    (tenant.get("lease_term_years"), "integer"),
             "tenant_name":         (tenant.get("tenant_name"), "string"),
             "unit":                (tenant.get("unit"), "string"),
             "sq_ft":               (tenant.get("sq_ft"), "integer"),
@@ -259,6 +260,9 @@ def _write_circular_ref_values(
         "leasing_commission", "leasing_commission_flat_fee", "additional_cost_amount",
         "land_sale_broker_fee", "tenant_improvement_total",
         "additional_cost_1", "additional_cost_2", "additional_cost_3",
+        "additional_cost_4", "additional_cost_5", "additional_cost_6",
+        "additional_cost_7", "additional_cost_8", "additional_cost_9",
+        "additional_cost_10",
     ]
     soft_costs_total = sum(
         float(extraction[k]["value"])

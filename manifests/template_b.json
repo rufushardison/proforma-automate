@@ -2,21 +2,22 @@
   "template_name": "Multi Tenant Model",
   "template_file": "Multi Tenant Model.xlsm",
 
-  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize — if the user's words do not clearly correspond to the category label, use an additional_cost slot instead. Examples of strict matching: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for 'pillar install', 'column work', 'support beams', or anything that doesn't explicitly say 'structural'). When a cost item does not clearly match an existing category, assign it to the next available additional_cost slot: write the user's original description (title-cased) to the label field (additional_cost_1_label, _2_label, _3_label) and the dollar amount to the value field (additional_cost_1, _2, _3). Fill slots in order — use slot 1 first, then 2, then 3.",
+  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize — if the user's words do not clearly correspond to the category label, use an additional_cost slot instead. Examples of strict matching: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for 'pillar install', 'column work', 'support beams', or anything that doesn't explicitly say 'structural'). When a cost item does not clearly match an existing category, assign it to the next available additional_cost slot: write the user's original description (title-cased) to the label field (additional_cost_1_label through _10_label) and the dollar amount to the value field (additional_cost_1 through _10). Fill slots in order — use slot 1 first, then 2, and so on up to 10.",
 
   "_notes": {
     "blue_hex": "0070C0 — column headers only, not input cells. Inputs identified by protection scan.",
     "circular_ref": "Macro updates D18 (Interest Carry) and D19 (Lender Fees) on Deal Summary, plus Financing H5/H8. Same formula as template_a: c32 = base_costs / (1 - (1+dev_fee_rate)*ltc*(fee_rate + rate*months/12)).",
-    "rent_roll_approach": "Rent Roll sheet has up to 17 tenant rows (11-27). Each row = one tenant. Monthly PSF values fill columns P-DA (84 cells per row, 7 years × 12 months). Columns DD-DJ = annual rent $ totals per year (2026-2032). We write the same base_rent_psf to all monthly cells for that tenant and compute DD-DJ as sf * psf.",
+    "rent_roll_approach": "Rent Roll sheet has up to 17 tenant rows (11-27). Each row = one tenant. Column B = lease term years. Monthly PSF values fill columns Q-AB (2026), AD-AO (2027), AQ-BB (2028), BD-BO (2029), BQ-CB (2030), CD-DB (2031). Columns DE-DK = annual rent $ totals per year (2026-2032). We write the same base_rent_psf to all monthly cells for that tenant and compute annual totals as sf * psf.",
     "differences_from_template_a": [
       "Rent roll is on dedicated 'Rent Roll' sheet, not Deal Summary",
-      "building_sf input at S9 (new field)",
+      "Rent Roll col B = lease_term_years (new); all other columns shifted +1",
+      "building_sf input at S9",
       "Additional expense inputs: taxes T23, insurance T24, CAM T25, expense_increase T26, property_mgmt_fee_rate T27",
-      "vacancy_rate at T31 (new field)",
-      "sale_closing_costs_rate at T29 (was T27 in template_a)",
-      "sale_cap_rate_goal at T30 (was T28 in template_a)",
+      "vacancy_rate at T31",
+      "sale_closing_costs_rate at T29, sale_cap_rate_goal at T30",
       "Circular ref cells at D18/D19 (vs D21/D22 in template_a)",
-      "Leasing commission is single flat-fee line: label S19 [editable], value T19"
+      "Leasing commission is a percentage (T19), not a lump sum",
+      "LTC at T35, Lender Fee at T36, Total Interest Carry Period at T37, Construction Months at T38"
     ],
     "sheet_names": ["Deal Summary", "Costs", "Proforma", "Rent Roll", "IRR ", "Financing", "Tax Credits", "Dealpath Outputs", "Financing (3 Refi)"]
   },
@@ -34,32 +35,33 @@
     "first_tenant_row": 11,
     "last_tenant_row": 27,
     "columns": {
-      "tax_reimbursement":  "B",
-      "ins_reimbursement":  "C",
-      "cam_reimbursement":  "D",
-      "annual_pct_increase": "E",
-      "tenant_name":        "F",
-      "unit":               "G",
-      "sq_ft":              "H",
-      "base_rent_psf":      "J",
-      "ti_psf":             "K"
+      "lease_term_years":   "B",
+      "tax_reimbursement":  "C",
+      "ins_reimbursement":  "D",
+      "cam_reimbursement":  "E",
+      "annual_pct_increase": "F",
+      "tenant_name":        "G",
+      "unit":               "H",
+      "sq_ft":              "I",
+      "base_rent_psf":      "K",
+      "ti_psf":             "L"
     },
     "monthly_psf_columns": {
-      "2026": { "start": "P", "end": "AA" },
-      "2027": { "start": "AC", "end": "AN" },
-      "2028": { "start": "AP", "end": "BA" },
-      "2029": { "start": "BC", "end": "BN" },
-      "2030": { "start": "BP", "end": "CA" },
-      "2031": { "start": "CC", "end": "DA" }
+      "2026": { "start": "Q", "end": "AB" },
+      "2027": { "start": "AD", "end": "AO" },
+      "2028": { "start": "AQ", "end": "BB" },
+      "2029": { "start": "BD", "end": "BO" },
+      "2030": { "start": "BQ", "end": "CB" },
+      "2031": { "start": "CD", "end": "DB" }
     },
     "annual_rent_columns": {
-      "2026": "DD",
-      "2027": "DE",
-      "2028": "DF",
-      "2029": "DG",
-      "2030": "DH",
-      "2031": "DI",
-      "2032": "DJ"
+      "2026": "DE",
+      "2027": "DF",
+      "2028": "DG",
+      "2029": "DH",
+      "2030": "DI",
+      "2031": "DJ",
+      "2032": "DK"
     }
   },
 
@@ -151,9 +153,9 @@
 
     "leasing_commission": {
       "sheet": "Deal Summary", "cell": "T19",
-      "type": "currency", "required": false,
-      "label": "Leasing Commission",
-      "sample_value": 160000
+      "type": "percent", "required": false,
+      "label": "Leasing Commission (%)",
+      "sample_value": 0.05
     },
 
     "additional_cost_amount": {
@@ -240,31 +242,31 @@
       "sample_value": 25
     },
 
-    "interest_only_period_months": {
-      "sheet": "Deal Summary", "cell": "T35",
-      "type": "integer", "required": false,
-      "label": "Interest Only Period (Months)",
-      "sample_value": 12
-    },
-
     "ltc": {
-      "sheet": "Deal Summary", "cell": "T36",
+      "sheet": "Deal Summary", "cell": "T35",
       "type": "percent", "required": true,
       "label": "LTC (Loan-to-Cost)",
       "sample_value": 0.8
     },
 
     "lender_fee_rate": {
-      "sheet": "Deal Summary", "cell": "T37",
+      "sheet": "Deal Summary", "cell": "T36",
       "type": "percent", "required": true,
       "label": "Lender Fee Percentage",
       "sample_value": 0.01
     },
 
+    "total_interest_carry_period": {
+      "sheet": "Deal Summary", "cell": "T37",
+      "type": "integer", "required": false,
+      "label": "Total Interest Carry Period (Months)",
+      "sample_value": 12
+    },
+
     "months_of_construction": {
       "sheet": "Deal Summary", "cell": "T38",
       "type": "integer", "required": false,
-      "label": "Months of Construction",
+      "label": "Construction Period (Months)",
       "sample_value": 8
     },
 
@@ -296,11 +298,25 @@
     "dd_structural":            { "sheet": "Costs", "cell": "N10", "type": "currency", "required": false, "label": "DD Costs — Structural",            "sample_value": null },
     "dd_surveys":               { "sheet": "Costs", "cell": "N13", "type": "currency", "required": false, "label": "DD Costs — Surveys",               "sample_value": null },
 
-    "additional_cost_1_label":  { "sheet": "Costs", "cell": "B32", "type": "string",   "required": false, "label": "Insert Cost Category 1 — Label",    "sample_value": null },
-    "additional_cost_1":        { "sheet": "Costs", "cell": "F32", "type": "currency", "required": false, "label": "Insert Cost Category 1 — Amount",   "sample_value": null },
-    "additional_cost_2_label":  { "sheet": "Costs", "cell": "B33", "type": "string",   "required": false, "label": "Insert Cost Category 2 — Label",    "sample_value": null },
-    "additional_cost_2":        { "sheet": "Costs", "cell": "F33", "type": "currency", "required": false, "label": "Insert Cost Category 2 — Amount",   "sample_value": null },
-    "additional_cost_3_label":  { "sheet": "Costs", "cell": "B34", "type": "string",   "required": false, "label": "Insert Cost Category 3 — Label",    "sample_value": null },
-    "additional_cost_3":        { "sheet": "Costs", "cell": "F34", "type": "currency", "required": false, "label": "Insert Cost Category 3 — Amount",   "sample_value": null }
+    "additional_cost_1_label":  { "sheet": "Costs", "cell": "B32", "type": "string",   "required": false, "label": "Insert Cost Category 1 — Label",  "sample_value": null },
+    "additional_cost_1":        { "sheet": "Costs", "cell": "F32", "type": "currency", "required": false, "label": "Insert Cost Category 1 — Amount", "sample_value": null },
+    "additional_cost_2_label":  { "sheet": "Costs", "cell": "B33", "type": "string",   "required": false, "label": "Insert Cost Category 2 — Label",  "sample_value": null },
+    "additional_cost_2":        { "sheet": "Costs", "cell": "F33", "type": "currency", "required": false, "label": "Insert Cost Category 2 — Amount", "sample_value": null },
+    "additional_cost_3_label":  { "sheet": "Costs", "cell": "B34", "type": "string",   "required": false, "label": "Insert Cost Category 3 — Label",  "sample_value": null },
+    "additional_cost_3":        { "sheet": "Costs", "cell": "F34", "type": "currency", "required": false, "label": "Insert Cost Category 3 — Amount", "sample_value": null },
+    "additional_cost_4_label":  { "sheet": "Costs", "cell": "B35", "type": "string",   "required": false, "label": "Insert Cost Category 4 — Label",  "sample_value": null },
+    "additional_cost_4":        { "sheet": "Costs", "cell": "F35", "type": "currency", "required": false, "label": "Insert Cost Category 4 — Amount", "sample_value": null },
+    "additional_cost_5_label":  { "sheet": "Costs", "cell": "B36", "type": "string",   "required": false, "label": "Insert Cost Category 5 — Label",  "sample_value": null },
+    "additional_cost_5":        { "sheet": "Costs", "cell": "F36", "type": "currency", "required": false, "label": "Insert Cost Category 5 — Amount", "sample_value": null },
+    "additional_cost_6_label":  { "sheet": "Costs", "cell": "B37", "type": "string",   "required": false, "label": "Insert Cost Category 6 — Label",  "sample_value": null },
+    "additional_cost_6":        { "sheet": "Costs", "cell": "F37", "type": "currency", "required": false, "label": "Insert Cost Category 6 — Amount", "sample_value": null },
+    "additional_cost_7_label":  { "sheet": "Costs", "cell": "B38", "type": "string",   "required": false, "label": "Insert Cost Category 7 — Label",  "sample_value": null },
+    "additional_cost_7":        { "sheet": "Costs", "cell": "F38", "type": "currency", "required": false, "label": "Insert Cost Category 7 — Amount", "sample_value": null },
+    "additional_cost_8_label":  { "sheet": "Costs", "cell": "B39", "type": "string",   "required": false, "label": "Insert Cost Category 8 — Label",  "sample_value": null },
+    "additional_cost_8":        { "sheet": "Costs", "cell": "F39", "type": "currency", "required": false, "label": "Insert Cost Category 8 — Amount", "sample_value": null },
+    "additional_cost_9_label":  { "sheet": "Costs", "cell": "B40", "type": "string",   "required": false, "label": "Insert Cost Category 9 — Label",  "sample_value": null },
+    "additional_cost_9":        { "sheet": "Costs", "cell": "F40", "type": "currency", "required": false, "label": "Insert Cost Category 9 — Amount", "sample_value": null },
+    "additional_cost_10_label": { "sheet": "Costs", "cell": "B41", "type": "string",   "required": false, "label": "Insert Cost Category 10 — Label", "sample_value": null },
+    "additional_cost_10":       { "sheet": "Costs", "cell": "F41", "type": "currency", "required": false, "label": "Insert Cost Category 10 — Amount", "sample_value": null }
   }
 }
