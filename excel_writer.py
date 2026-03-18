@@ -270,16 +270,6 @@ def _write_circular_ref_values(
         if k in extraction and extraction[k].get("value") is not None
     )
 
-    # For multi-tenant, also add TI costs from Rent Roll tenants
-    tenants = extraction.get("_tenants", [])
-    for t in tenants:
-        ti_psf = t.get("ti_psf") or 0
-        sf = t.get("sq_ft") or 0
-        try:
-            soft_costs_total += float(ti_psf) * int(sf)
-        except (TypeError, ValueError):
-            pass
-
     # Also add construction/site-work costs from Costs sheet
     costs_keys = [k for k in assumptions_meta if k.startswith("costs_") or k.startswith("dd_")]
     costs_total = sum(
