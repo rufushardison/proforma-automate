@@ -524,10 +524,27 @@ def main():
         with st.spinner("Building Excel file..."):
             try:
                 updated_extraction = df_to_extraction(edited_df, extraction)
-                excel_buffer = fill_template(template_path, manifest, updated_extraction)
+                excel_buffer, circ_info = fill_template(template_path, manifest, updated_extraction)
             except Exception as exc:
                 st.error(f"Failed to build Excel file: {exc}")
                 return
+
+        if circ_info:
+            if circ_info.get("status") == "skipped":
+                st.warning(
+                    f"⚠️ Interest carry & lender fees NOT computed — {circ_info['reason']}. "
+                    "Check that acquisition cost, LTC, financing rate, and lender fee rate are all extracted."
+                )
+            elif circ_info.get("status") == "ok":
+                with st.expander("Computed: Interest Carry & Lender Fees", expanded=False):
+                    st.write(f"**Acquisition Cost:** ${circ_info['acquisition_cost']:,.0f}")
+                    st.write(f"**Soft Costs:** ${circ_info['soft_costs']:,.0f}")
+                    st.write(f"**Construction Costs:** ${circ_info['construction_costs']:,.0f}")
+                    st.write(f"**Base Costs:** ${circ_info['base_costs']:,.0f}")
+                    st.write(f"**LTC:** {circ_info['ltc']*100:.1f}%  →  **Loan:** ${circ_info['loan_amount']:,.0f}")
+                    st.write(f"**Lender Fee:** {circ_info['lender_fee_rate']*100:.2f}%  →  **${circ_info['lender_fee']:,.0f}**")
+                    st.write(f"**Financing Rate:** {circ_info['financing_rate']*100:.2f}%  ×  {circ_info['months_carry']:.0f} months  →  **Interest Carry: ${circ_info['interest_carry']:,.0f}**")
+                    st.write(f"**Written to:** {', '.join(circ_info.get('cells_written', {}).keys()) or 'none'}")
 
         output_filename = f"proforma_{template_name.lower().replace(' ', '_')}.xlsm"
         st.download_button(

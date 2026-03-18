@@ -180,6 +180,23 @@ def extract_assumptions(
     if "rent_roll" in manifest:
         result["_tenants"] = extract_tenants(deal_summary, client)
 
+        # Safeguard: if any tenant has a ti_psf, null out additional_cost_amount
+        # to prevent Claude from double-counting TI (PSF goes to rent roll only)
+        tenants = result.get("_tenants", [])
+        if any(t.get("ti_psf") for t in tenants):
+            if "additional_cost_amount" in result:
+                result["additional_cost_amount"] = {
+                    "value": None,
+                    "confidence": "high",
+                    "note": "TI was given as PSF — amount goes to rent roll only, not Deal Summary T20",
+                }
+            if "additional_cost_amount_label" in result:
+                result["additional_cost_amount_label"] = {
+                    "value": None,
+                    "confidence": "high",
+                    "note": "cleared — TI is PSF-based",
+                }
+
     return result
 
 

@@ -2,7 +2,7 @@
   "template_name": "Single Tenant Model",
   "template_file": "Single Tenant Model.xlsm",
 
-  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize. Examples: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for anything that doesn't explicitly say 'structural'). If a cost item does not clearly match an existing category, leave that field null and do not force it into a similar-sounding category.",
+  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize. Examples: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for anything that doesn't explicitly say 'structural'). If a cost item does not clearly match an existing category, leave that field null and do not force it into a similar-sounding category. TI (TENANT IMPROVEMENT) RULES: If TI is stated as a per-square-foot (PSF) amount, do NOT populate tenant_improvement_total — leave it null. PSF TI belongs only in the per-tenant rent data. If TI is stated as a single lump sum dollar total (not PSF), populate tenant_improvement_total with that amount. Never put TI on the Costs sheet.",
 
   "_notes": {
     "blue_hex": "0070C0 — used for column HEADERS, not input cells. Actual input cells are unlocked (unprotected) and identified by cell protection scan.",
@@ -128,7 +128,7 @@
     "tenant_improvement_total": {
       "sheet": "Deal Summary", "cell": "T26",
       "type": "currency", "required": false,
-      "label": "TI (Total or PSF)",
+      "label": "Lump Sum TI Total (only if TI was NOT given as a per-tenant PSF — leave null if PSF was provided)",
       "sample_value": 0
     },
 

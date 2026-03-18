@@ -2,7 +2,7 @@
   "template_name": "Multi Tenant Model",
   "template_file": "Multi Tenant Model.xlsm",
 
-  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize — if the user's words do not clearly correspond to the category label, use an additional_cost slot instead. Examples of strict matching: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for 'pillar install', 'column work', 'support beams', or anything that doesn't explicitly say 'structural'). When a cost item does not clearly match an existing category, assign it to the next available additional_cost slot: write the user's original description (title-cased) to the label field (additional_cost_1_label through _10_label) and the dollar amount to the value field (additional_cost_1 through _10). Fill slots in order — use slot 1 first, then 2, and so on up to 10. TI (TENANT IMPROVEMENT) RULES: TI must NEVER be placed in any Costs sheet category. If TI is stated as a per-square-foot amount, extract it only as ti_psf on the individual tenant in the rent roll — do not calculate or record a total TI dollar amount anywhere. If TI is stated as a single lump sum total dollar amount (not PSF), extract it as additional_cost_amount (Deal Summary T20) — do not put it in the rent roll or the Costs sheet.",
+  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize — if the user's words do not clearly correspond to the category label, use an additional_cost slot instead. Examples of strict matching: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for 'pillar install', 'column work', 'support beams', or anything that doesn't explicitly say 'structural'). When a cost item does not clearly match an existing category, assign it to the next available additional_cost slot: write the user's original description (title-cased) to the label field (additional_cost_1_label through _10_label) and the dollar amount to the value field (additional_cost_1 through _10). Fill slots in order — use slot 1 first, then 2, and so on up to 10. TI (TENANT IMPROVEMENT) RULES: TI must NEVER be placed in any Costs sheet category. If TI is stated as a per-square-foot amount, extract it only as ti_psf on the individual tenant in the rent roll — do not calculate or record a total TI dollar amount anywhere. If TI is stated as a single lump sum total dollar amount (not PSF), extract the dollar amount as additional_cost_amount (Deal Summary T20) AND extract a short description (e.g. 'Tenant Improvement Allowance') as additional_cost_amount_label (Deal Summary S20) — do not put it in the rent roll or the Costs sheet. Whenever additional_cost_amount has a value, additional_cost_amount_label MUST also have a value.",
 
   "_notes": {
     "blue_hex": "0070C0 — column headers only, not input cells. Inputs identified by protection scan.",
@@ -156,10 +156,17 @@
       "sample_value": 0.05
     },
 
+    "additional_cost_amount_label": {
+      "sheet": "Deal Summary", "cell": "S20",
+      "type": "string", "required": false,
+      "label": "Insert Cost Category Label (S20) — MUST be populated whenever additional_cost_amount is populated",
+      "sample_value": ""
+    },
+
     "additional_cost_amount": {
       "sheet": "Deal Summary", "cell": "T20",
       "type": "currency", "required": false,
-      "label": "Insert Cost Category / Lump Sum TI Allowance (Deal Summary)",
+      "label": "Insert Cost Category — use ONLY for non-TI misc costs, OR lump sum TI total ONLY if no per-tenant PSF was provided",
       "sample_value": 0
     },
 

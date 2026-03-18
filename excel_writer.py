@@ -73,7 +73,7 @@ def fill_template(
     template_path: str | Path,
     manifest: dict[str, Any],
     extraction: ExtractionResult,
-) -> io.BytesIO:
+) -> tuple[io.BytesIO, dict[str, Any]]:
     """
     Load the template, write assumptions, resolve circular refs, write rent roll
     (for multi-tenant), and return an in-memory .xlsm buffer for download.
@@ -84,7 +84,7 @@ def fill_template(
         extraction:    Output of extractor.extract_assumptions().
 
     Returns:
-        BytesIO containing the filled workbook.
+        (BytesIO containing the filled workbook, dict with computed circular ref info)
     """
     template_path = Path(template_path)
     if not template_path.exists():
@@ -131,8 +131,9 @@ def fill_template(
     # ------------------------------------------------------------------
     # 3. Resolve and write circular reference values
     # ------------------------------------------------------------------
+    circ_info: dict[str, Any] = {}
     if circular_ref_cells:
-        _write_circular_ref_values(wb, manifest, extraction)
+        circ_info = _write_circular_ref_values(wb, manifest, extraction)
 
     # ------------------------------------------------------------------
     # 4. Serialize to BytesIO
@@ -140,7 +141,7 @@ def fill_template(
     buffer = io.BytesIO()
     wb.save(buffer)
     buffer.seek(0)
-    return buffer
+    return buffer, circ_info
 
 
 # ---------------------------------------------------------------------------
@@ -226,13 +227,11 @@ def _write_circular_ref_values(
     wb: openpyxl.Workbook,
     manifest: dict[str, Any],
     extraction: ExtractionResult,
-) -> None:
+) -> dict[str, Any]:
     """
-    Compute lender_fee and interest_carry using circular_solver and write
-    to all circular_ref_cells defined in the manifest.
+    Compute lender_fee and interest_carry and write to circular_ref_cells.
 
-    Uses assumption keys from extraction to gather inputs. Tolerates missing
-    values by skipping the solve gracefully.
+    Returns a dict with computed values and debug info for display in the UI.
     """
     def _get(key: str) -> float | None:
         entry = extraction.get(key, {})
@@ -244,12 +243,11 @@ def _write_circular_ref_values(
         except (TypeError, ValueError):
             return None
 
-    # Gather required inputs — keys are the same across both templates
+    # Gather required inputs
     acquisition_cost = _get("acquisition_cost")
     ltc = _get("ltc")
     fee_rate = _get("lender_fee_rate")
     rate = _get("financing_rate")
-    # Prefer total_interest_carry_period (multi-tenant T37) over months_of_construction
     months_carry = (
         _get("total_interest_carry_period")
         or _get("months_of_construction")
@@ -257,11 +255,11 @@ def _write_circular_ref_values(
     )
     dev_fee_rate = _get("developer_fee_rate") or 0.0
 
-    # Also pull all non-circular soft cost line items to compute base_costs
+    # Aggregate soft costs (non-circular Deal Summary line items)
     assumptions_meta = manifest.get("assumptions", {})
     soft_cost_keys = [
         "ae_costs", "contingency", "closing_costs", "permitting", "legal_fees",
-        "leasing_commission", "leasing_commission_flat_fee", "additional_cost_amount",
+        "leasing_commission_flat_fee", "additional_cost_amount",
         "land_sale_broker_fee", "tenant_improvement_total",
         "additional_cost_1", "additional_cost_2", "additional_cost_3",
         "additional_cost_4", "additional_cost_5", "additional_cost_6",
@@ -274,7 +272,7 @@ def _write_circular_ref_values(
         if k in extraction and extraction[k].get("value") is not None
     )
 
-    # Also add construction/site-work costs from Costs sheet
+    # Construction/site-work costs from Costs sheet
     costs_keys = [k for k in assumptions_meta if k.startswith("costs_") or k.startswith("dd_")]
     costs_total = sum(
         float(extraction[k]["value"])
@@ -282,11 +280,18 @@ def _write_circular_ref_values(
         if k in extraction and extraction[k].get("value") is not None
     )
 
-    if any(v is None for v in [acquisition_cost, ltc, fee_rate, rate]):
-        return  # insufficient inputs — leave template defaults
+    missing = [
+        name for name, val in [
+            ("acquisition_cost", acquisition_cost),
+            ("ltc", ltc),
+            ("lender_fee_rate", fee_rate),
+            ("financing_rate", rate),
+        ] if val is None
+    ]
+    if missing:
+        return {"status": "skipped", "reason": f"Missing required inputs: {missing}"}
 
     base_costs = acquisition_cost + soft_costs_total + costs_total
-
     loan_amount    = base_costs * ltc
     lender_fee     = loan_amount * fee_rate
     interest_carry = loan_amount * rate * (months_carry / 12.0)
@@ -296,20 +301,20 @@ def _write_circular_ref_values(
         "interest_carry": interest_carry,
     }
 
-    # Write to all circular_ref_cells entries in the manifest
+    # Write to circular_ref_cells
     circular_ref_cells = manifest.get("circular_ref_cells", {})
     _solved_key_map = {
         "lender_fee":     "lender_fee",
         "interest_carry": "interest_carry",
         "loan_amount":    "loan_amount",
     }
+    cells_written = {}
 
     for manifest_key, cell_info in circular_ref_cells.items():
-        # manifest_key examples: "lender_fees_deal_summary", "interest_carry_financing"
         solved_key = None
-        for k, v in _solved_key_map.items():
+        for k in _solved_key_map:
             if k in manifest_key:
-                solved_key = v
+                solved_key = k
                 break
         if solved_key is None:
             continue
@@ -324,6 +329,23 @@ def _write_circular_ref_values(
             continue
 
         wb[sheet_name][cell_address] = solved_value
+        cells_written[f"{sheet_name}!{cell_address}"] = solved_value
+
+    return {
+        "status": "ok",
+        "acquisition_cost": acquisition_cost,
+        "soft_costs": soft_costs_total,
+        "construction_costs": costs_total,
+        "base_costs": base_costs,
+        "ltc": ltc,
+        "loan_amount": loan_amount,
+        "lender_fee_rate": fee_rate,
+        "lender_fee": lender_fee,
+        "financing_rate": rate,
+        "months_carry": months_carry,
+        "interest_carry": interest_carry,
+        "cells_written": cells_written,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -352,8 +374,9 @@ if __name__ == "__main__":
             "note": "",
         }
 
-    buf = fill_template(sys.argv[1], _manifest, _extraction)
+    buf, info = fill_template(sys.argv[1], _manifest, _extraction)
     out_path = "output_test.xlsm"
     with open(out_path, "wb") as f:
         f.write(buf.read())
     print(f"Written to {out_path}")
+    print(f"Circular ref info: {info}")
