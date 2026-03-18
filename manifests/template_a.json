@@ -15,9 +15,7 @@
 
   "circular_ref_cells": {
     "interest_carry_deal_summary": { "sheet": "Deal Summary", "cell": "D21" },
-    "lender_fees_deal_summary":    { "sheet": "Deal Summary", "cell": "D22" },
-    "interest_carry_financing":    { "sheet": "Financing",    "cell": "H5"  },
-    "lender_fees_financing":       { "sheet": "Financing",    "cell": "H8"  }
+    "lender_fees_deal_summary":    { "sheet": "Deal Summary", "cell": "D22" }
   },
 
   "assumptions": {
