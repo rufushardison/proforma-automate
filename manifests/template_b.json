@@ -2,6 +2,8 @@
   "template_name": "Multi Tenant Model",
   "template_file": "Multi Tenant Model.xlsm",
 
+  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize — if the user's words do not clearly correspond to the category label, use an additional_cost slot instead. Examples of strict matching: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for 'pillar install', 'column work', 'support beams', or anything that doesn't explicitly say 'structural'). When a cost item does not clearly match an existing category, assign it to the next available additional_cost slot: write the user's original description (title-cased) to the label field (additional_cost_1_label, _2_label, _3_label) and the dollar amount to the value field (additional_cost_1, _2, _3). Fill slots in order — use slot 1 first, then 2, then 3.",
+
   "_notes": {
     "blue_hex": "0070C0 — column headers only, not input cells. Inputs identified by protection scan.",
     "circular_ref": "Macro updates D18 (Interest Carry) and D19 (Lender Fees) on Deal Summary, plus Financing H5/H8. Same formula as template_a: c32 = base_costs / (1 - (1+dev_fee_rate)*ltc*(fee_rate + rate*months/12)).",

@@ -2,6 +2,8 @@
   "template_name": "Single Tenant Model",
   "template_file": "Single Tenant Model.xlsm",
 
+  "_extraction_notes": "COST CATEGORY MATCHING RULES: Only assign a value to an existing Costs sheet category if the user's description closely and literally matches that category's label. Do NOT infer or generalize. Examples: 'sitework' or 'site work' → costs_sitework; 'landscaping' → costs_landscaping; 'roof' or 'roofing' → costs_roof_replacement; 'structural repairs' or 'structural work' → costs_structural_repairs (do NOT use this for anything that doesn't explicitly say 'structural'). If a cost item does not clearly match an existing category, leave that field null and do not force it into a similar-sounding category.",
+
   "_notes": {
     "blue_hex": "0070C0 — used for column HEADERS, not input cells. Actual input cells are unlocked (unprotected) and identified by cell protection scan.",
     "costs_tab": "Costs sheet — columns D/E = cost inputs for each line item (F = formula total). DD Costs columns L/M = inputs; N = formula total. All optional; used mainly for build-to-suit or value-add deals.",
